@@ -22,11 +22,12 @@ public class Controller {
         return "DONE";
     }
 
-    @RequestMapping("/NeuralNetwork")
-    public Set<Integer> neuralNetwork(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
+    @RequestMapping("/neuralnetwork")
+    public List neuralNetwork(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                                       @RequestParam(value = "nIN", defaultValue = "10") int nIn,
                                       @RequestParam(value = "nOut", defaultValue = "10") int nOut,
-                                      @RequestParam(value = "sample") String sample) throws IOException, InterruptedException {
+                                      @RequestParam(value = "sample") String sample) throws IOException,
+                                                                                        InterruptedException {
 
         int nEpochs = 100;
         int nHiddenNodes = 100;
@@ -42,24 +43,65 @@ public class Controller {
 
         System.out.println("NeuroGen: NN");
         NeuralNetwork nn = new NeuralNetwork(courseName, nEpochs, nIn, nOut, nHiddenNodes, dataset);
-        Set<Integer> prediction = nn.getPrediction(pred);
+        List prediction = nn.getPredictionList(pred);
 
         return prediction;
     }
 
-    @RequestMapping("/GeneticAlgorithm")
+    @RequestMapping("/geneticllgorithm")
     public List geneticAlgorithm(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                                 @RequestParam(value = "prediction") Set<Integer> prediction) throws ParserConfigurationException, SAXException, IOException {
+                                 @RequestParam(value = "prediction") Set<Integer> prediction) throws
+                                                                ParserConfigurationException, SAXException, IOException {
 
         int populationSize = 50;
         int maxPhenotypeAge = 20;
         double crossoverPropability = 0.6;
         double mutationPropability = 0.2;
         int numberOfGenerations = 100;
+        List best;
 
         System.out.println("NeuroGen: GA");
-        GeneticAlgorithm genAlg = new GeneticAlgorithm(courseName, populationSize, maxPhenotypeAge, crossoverPropability, mutationPropability, numberOfGenerations, prediction);
+        GeneticAlgorithm genAlg = new GeneticAlgorithm(courseName, populationSize, maxPhenotypeAge, crossoverPropability,
+                mutationPropability, numberOfGenerations, prediction);
+        best = genAlg.getBestList();
 
-        return genAlg.getBestList();
+        return best;
+    }
+
+    @RequestMapping
+    public List neurogen(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia")String courseName,
+                         @RequestParam(value = "nIN", defaultValue = "10") int nIn,
+                         @RequestParam(value = "nOut", defaultValue = "10") int nOut,
+                         @RequestParam(value = "sample") String sample) throws IOException, InterruptedException,
+                                                                        ParserConfigurationException, SAXException {
+        int nEpochs = 100;
+        int nHiddenNodes = 100;
+        String dataset = courseName+" dataset.csv";
+
+        int populationSize = 50;
+        int maxPhenotypeAge = 20;
+        double crossoverPropability = 0.6;
+        double mutationPropability = 0.2;
+        int numberOfGenerations = 100;
+        List best;
+
+        String[] strValues = sample.split(",");
+        float[] values = new float[strValues.length];
+        for (int i =0; i<strValues.length; i++){
+            values[i] = Integer.parseInt(strValues[i]);
+        }
+
+        INDArray pred = Nd4j.create(values);
+
+        System.out.println("NeuroGen: FULL");
+        NeuralNetwork neuralnet = new NeuralNetwork(courseName, nEpochs, nIn, nOut, nHiddenNodes, dataset);
+        Set<Integer> predicion = neuralnet.getPredictionSet(pred);
+
+        GeneticAlgorithm geneticalg = new GeneticAlgorithm(courseName, populationSize, maxPhenotypeAge,
+                crossoverPropability, mutationPropability, numberOfGenerations, predicion);
+
+        best = geneticalg.getBestList();
+
+        return best;
     }
 }

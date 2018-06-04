@@ -138,18 +138,31 @@ public class NeuralNetwork {
         this.model = ModelSerializer.restoreMultiLayerNetwork(this.locationToSaveModel);
     }
 
-    public Set<Integer> getPrediction(INDArray sample) {
+    public Set<Integer> getPredictionSet(INDArray sample) {
         ArrayList<Integer> idsList = new ArrayList<>();
 
         this.output = this.model.output(sample);
 
-        for (int i=0;i<this.output.length();i++){
+        for (int i=1;i<this.output.length();i++){
             if (this.output.getDouble(i)>0.5){
-                idsList.add(i+1);
+                idsList.add(i);
             }
         }
         Set<Integer> prediction = new HashSet<Integer>(idsList);
 
+        return prediction;
+    }
+
+    public List getPredictionList(INDArray sample){
+        List prediction = new ArrayList();
+
+        this.output = this.model.output(sample);
+
+        for (int i = 1; i<this.output.length(); i++){
+            if (this.output.getDouble(i)>0.5){
+                prediction.add(i);
+            }
+        }
         return prediction;
     }
 }

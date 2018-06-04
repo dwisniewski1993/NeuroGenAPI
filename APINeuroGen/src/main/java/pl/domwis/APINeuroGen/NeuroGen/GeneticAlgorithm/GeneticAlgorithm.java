@@ -63,7 +63,7 @@ public class GeneticAlgorithm {
         List chromosome = new ArrayList(size);
 
         for (int i=0; i<size; i++){
-            chromosome.add(this.best.getGenotype().getChromosome().getGene(i));
+            chromosome.add(this.best.getGenotype().getChromosome().getGene(i).toString());
         }
 
         return chromosome;
