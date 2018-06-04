@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UNITS_LIST>
+	<UNIT id = "1">
+		<DIFFICULTY_LEVEL>1</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "2">1</FROM>
+			<FROM id = "3">1</FROM>
+			<FROM id = "4">3</FROM>
+			<FROM id = "5">3</FROM>
+			<FROM id = "6">3</FROM>
+			<FROM id = "7">5</FROM>
+			<FROM id = "8">5</FROM>
+			<FROM id = "9">5</FROM>
+			<FROM id = "10">5</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "2">
+		<DIFFICULTY_LEVEL>2</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">1</FROM>
+			<FROM id = "3">1</FROM>
+			<FROM id = "4">3</FROM>
+			<FROM id = "5">3</FROM>
+			<FROM id = "6">3</FROM>
+			<FROM id = "7">5</FROM>
+			<FROM id = "8">5</FROM>
+			<FROM id = "9">5</FROM>
+			<FROM id = "10">5</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "3">
+		<DIFFICULTY_LEVEL>3</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">1</FROM>
+			<FROM id = "2">1</FROM>
+			<FROM id = "4">3</FROM>
+			<FROM id = "5">3</FROM>
+			<FROM id = "6">3</FROM>
+			<FROM id = "7">5</FROM>
+			<FROM id = "8">5</FROM>
+			<FROM id = "9">5</FROM>
+			<FROM id = "10">5</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "4">
+		<DIFFICULTY_LEVEL>4</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">3</FROM>
+			<FROM id = "2">3</FROM>
+			<FROM id = "3">3</FROM>
+			<FROM id = "5">1</FROM>
+			<FROM id = "6">1</FROM>
+			<FROM id = "7">3</FROM>
+			<FROM id = "8">3</FROM>
+			<FROM id = "9">3</FROM>
+			<FROM id = "10">3</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "5">
+		<DIFFICULTY_LEVEL>5</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">3</FROM>
+			<FROM id = "2">3</FROM>
+			<FROM id = "3">3</FROM>
+			<FROM id = "4">1</FROM>
+			<FROM id = "6">1</FROM>
+			<FROM id = "7">3</FROM>
+			<FROM id = "8">3</FROM>
+			<FROM id = "9">3</FROM>
+			<FROM id = "10">3</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "6">
+		<DIFFICULTY_LEVEL>6</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">3</FROM>
+			<FROM id = "2">3</FROM>
+			<FROM id = "3">3</FROM>
+			<FROM id = "4">1</FROM>
+			<FROM id = "5">1</FROM>
+			<FROM id = "7">5</FROM>
+			<FROM id = "8">5</FROM>
+			<FROM id = "9">5</FROM>
+			<FROM id = "10">5</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "7">
+		<DIFFICULTY_LEVEL>7</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">5</FROM>
+			<FROM id = "2">5</FROM>
+			<FROM id = "3">5</FROM>
+			<FROM id = "4">3</FROM>
+			<FROM id = "5">3</FROM>
+			<FROM id = "6">3</FROM>
+			<FROM id = "8">1</FROM>
+			<FROM id = "9">1</FROM>
+			<FROM id = "10">1</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "8">
+		<DIFFICULTY_LEVEL>8</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">5</FROM>
+			<FROM id = "2">5</FROM>
+			<FROM id = "3">5</FROM>
+			<FROM id = "4">3</FROM>
+			<FROM id = "5">3</FROM>
+			<FROM id = "6">3</FROM>
+			<FROM id = "7">1</FROM>
+			<FROM id = "9">1</FROM>
+			<FROM id = "10">1</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "9">
+		<DIFFICULTY_LEVEL>9</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">5</FROM>
+			<FROM id = "2">5</FROM>
+			<FROM id = "3">5</FROM>
+			<FROM id = "4">3</FROM>
+			<FROM id = "5">3</FROM>
+			<FROM id = "6">3</FROM>
+			<FROM id = "7">1</FROM>
+			<FROM id = "8">1</FROM>
+			<FROM id = "10">1</FROM>
+		</DISTANCE>
+	</UNIT>	<UNIT id = "10">
+		<DIFFICULTY_LEVEL>10</DIFFICULTY_LEVEL>
+		<DISTANCE>
+			<FROM id = "1">5</FROM>
+			<FROM id = "2">5</FROM>
+			<FROM id = "3">5</FROM>
+			<FROM id = "4">3</FROM>
+			<FROM id = "5">3</FROM>
+			<FROM id = "6">3</FROM>
+			<FROM id = "7">1</FROM>
+			<FROM id = "8">1</FROM>
+			<FROM id = "9">1</FROM>
+		</DISTANCE>
+	</UNIT></UNITS_LIST>
