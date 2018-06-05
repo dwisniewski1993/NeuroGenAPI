@@ -49,7 +49,7 @@ public class Controller {
         return prediction;
     }
 
-    @RequestMapping(value = "/geneticllgorithm", method = RequestMethod.POST)
+    @RequestMapping(value = "/geneticalgorithm", method = RequestMethod.POST)
     public List geneticAlgorithm(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                                  @RequestParam(value = "prediction") Set<Integer> prediction) throws
                                                                 ParserConfigurationException, SAXException, IOException {
