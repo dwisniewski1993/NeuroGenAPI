@@ -6,37 +6,65 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
 import pl.domwis.APINeuroGen.NeuroGen.GeneticAlgorithm.GeneticAlgorithm;
 import pl.domwis.APINeuroGen.NeuroGen.NeuralNetwork.NeuralNetwork;
+import pl.domwis.APINeuroGen.NeuroGen.exceptions.DataNotFoundException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 @RestController
 public class Controller {
 
-    @RequestMapping(value = "/importDatasets", method = RequestMethod.POST)
-    public String importDatasets(@RequestParam(value="courseName", defaultValue="tabliczka mnozenia") String courseName) {
-        return "DONE";
+    @RequestMapping(value = "/importdatasets", method = RequestMethod.POST)
+    public String importDatasets(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
+                                 @RequestParam(value = "datasetFile") MultipartFile datasetFile,
+                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile) throws IOException {
+        File newDataset = new File(courseName + " dataset.csv");
+        newDataset.createNewFile();
+        writeMultiPartFIleToFile(datasetFile, newDataset);
+
+        if (semanticFile != null) {
+            File newSemantic = new File(courseName + " semantic.xml");
+            newSemantic.createNewFile();
+            writeMultiPartFIleToFile(semanticFile, newSemantic);
+        }
+        return "DONE " + newDataset.getAbsolutePath();
+    }
+
+    private void writeMultiPartFIleToFile(@RequestParam(value = "datasetFile") MultipartFile datasetFile, File newDataset) throws IOException {
+        FileOutputStream fos = new FileOutputStream(newDataset);
+        fos.write(datasetFile.getBytes());
+        fos.close();
     }
 
     @RequestMapping(value = "/neuralnetwork", method = RequestMethod.POST)
     public List neuralNetwork(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                                      @RequestParam(value = "nIN", defaultValue = "10") int nIn,
-                                      @RequestParam(value = "nOut", defaultValue = "10") int nOut,
-                                      @RequestParam(value = "sample") String sample) throws IOException,
-                                                                                        InterruptedException {
+                              @RequestParam(value = "nIN", defaultValue = "10") int nIn,
+                              @RequestParam(value = "nOut", defaultValue = "10") int nOut,
+                              @RequestParam(value = "sample") String sample) throws IOException,
+            InterruptedException {
+
+        boolean datasetExist = Files.exists(Paths.get(courseName + " dataset.csv"));
 
         int nEpochs = 100;
         int nHiddenNodes = 100;
-        String dataset = courseName+" dataset.csv";
+        String dataset = courseName + " dataset.csv";
+
+        if (!datasetExist){
+            throw new DataNotFoundException("Brak pliku: " + dataset);
+        }
 
         String[] strValues = sample.split(",");
         float[] values = new float[strValues.length];
-        for (int i =0; i<strValues.length; i++){
+        for (int i = 0; i < strValues.length; i++) {
             values[i] = Integer.parseInt(strValues[i]);
         }
 
@@ -52,7 +80,9 @@ public class Controller {
     @RequestMapping(value = "/geneticalgorithm", method = RequestMethod.POST)
     public List geneticAlgorithm(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                                  @RequestParam(value = "prediction") Set<Integer> prediction) throws
-                                                                ParserConfigurationException, SAXException, IOException {
+            ParserConfigurationException, SAXException, IOException {
+
+        boolean semanticExist = Files.exists(Paths.get(courseName + " semantic.xml"));
 
         int populationSize = 50;
         int maxPhenotypeAge = 20;
@@ -60,6 +90,10 @@ public class Controller {
         double mutationPropability = 0.2;
         int numberOfGenerations = 100;
         List best;
+
+        if (!semanticExist){
+            throw new DataNotFoundException("Brak pliku: " + courseName + " semantic.xml");
+        }
 
         System.out.println("NeuroGen: GA");
         GeneticAlgorithm genAlg = new GeneticAlgorithm(courseName, populationSize, maxPhenotypeAge, crossoverPropability,
@@ -70,14 +104,18 @@ public class Controller {
     }
 
     @RequestMapping(value = "/neurogen", method = RequestMethod.POST)
-    public List neurogen(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia")String courseName,
+    public List neurogen(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                          @RequestParam(value = "nIN", defaultValue = "10") int nIn,
                          @RequestParam(value = "nOut", defaultValue = "10") int nOut,
                          @RequestParam(value = "sample") String sample) throws IOException, InterruptedException,
-                                                                        ParserConfigurationException, SAXException {
+            ParserConfigurationException, SAXException {
+
+        boolean datasetExist = Files.exists(Paths.get(courseName + " dataset.csv"));
+        boolean semanticExist = Files.exists(Paths.get(courseName + " semantic.xml"));
+
         int nEpochs = 100;
         int nHiddenNodes = 100;
-        String dataset = courseName+" dataset.csv";
+        String dataset = courseName + " dataset.csv";
 
         int populationSize = 50;
         int maxPhenotypeAge = 20;
@@ -86,9 +124,17 @@ public class Controller {
         int numberOfGenerations = 100;
         List best;
 
+        if (!datasetExist){
+            throw new DataNotFoundException("Brak pliku: " + dataset);
+        }
+
+        if (!semanticExist){
+            throw new DataNotFoundException("Brak pliku: " + courseName + " semantic.xml");
+        }
+
         String[] strValues = sample.split(",");
         float[] values = new float[strValues.length];
-        for (int i =0; i<strValues.length; i++){
+        for (int i = 0; i < strValues.length; i++) {
             values[i] = Integer.parseInt(strValues[i]);
         }
 
@@ -107,16 +153,40 @@ public class Controller {
     }
 
     @RequestMapping(value = "/requesttraining", method = RequestMethod.POST)
-    public void trainnet(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia")String courseName,
+    public void trainnet(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                          @RequestParam(value = "nIN", defaultValue = "10") int nIn,
                          @RequestParam(value = "nOut", defaultValue = "10") int nOut) throws IOException, InterruptedException {
 
         int nEpochs = 100;
         int nHiddenNodes = 100;
-        String dataset = courseName+" dataset.csv";
+        String dataset = courseName + " dataset.csv";
 
         System.out.println("NeuroGen: TRAIN NETWORK");
         NeuralNetwork nn = new NeuralNetwork(courseName, nEpochs, nIn, nOut, nHiddenNodes, dataset);
         nn.requestTraining();
+    }
+
+    @RequestMapping(value = "/availablemethods", method = RequestMethod.GET)
+    public Map<String, Object> getavailablemethods(@RequestParam(value = "courseName") String courseName){
+
+        boolean datasetExist = Files.exists(Paths.get(courseName + " dataset.csv"));
+        boolean semanticExist = Files.exists(Paths.get(courseName + " semantic.xml"));
+        Map<String, Object> mapedList = new HashMap<>();
+
+        List<String> methods = new ArrayList<>();///neuralnetwork
+
+        if (datasetExist){
+            methods.add("neuralnetwork");
+        }
+        if (semanticExist){
+            methods.add("geneticalgorithm");
+        }
+        if (datasetExist && semanticExist){
+            methods.add("neurogen");
+        }
+
+        mapedList.put("methods", methods);
+
+        return mapedList;
     }
 }
