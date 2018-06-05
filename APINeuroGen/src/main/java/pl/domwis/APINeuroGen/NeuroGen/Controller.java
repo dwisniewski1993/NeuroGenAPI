@@ -3,6 +3,7 @@ package pl.domwis.APINeuroGen.NeuroGen;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.xml.sax.SAXException;
@@ -17,12 +18,12 @@ import java.util.Set;
 @RestController
 public class Controller {
 
-    @RequestMapping("/importDatasets")
+    @RequestMapping(value = "/importDatasets", method = RequestMethod.POST)
     public String importDatasets(@RequestParam(value="courseName", defaultValue="tabliczka mnozenia") String courseName) {
         return "DONE";
     }
 
-    @RequestMapping("/neuralnetwork")
+    @RequestMapping(value = "/neuralnetwork", method = RequestMethod.POST)
     public List neuralNetwork(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                                       @RequestParam(value = "nIN", defaultValue = "10") int nIn,
                                       @RequestParam(value = "nOut", defaultValue = "10") int nOut,
@@ -48,7 +49,7 @@ public class Controller {
         return prediction;
     }
 
-    @RequestMapping("/geneticllgorithm")
+    @RequestMapping(value = "/geneticllgorithm", method = RequestMethod.POST)
     public List geneticAlgorithm(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                                  @RequestParam(value = "prediction") Set<Integer> prediction) throws
                                                                 ParserConfigurationException, SAXException, IOException {
@@ -68,7 +69,7 @@ public class Controller {
         return best;
     }
 
-    @RequestMapping("/neurogen")
+    @RequestMapping(value = "/neurogen", method = RequestMethod.POST)
     public List neurogen(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia")String courseName,
                          @RequestParam(value = "nIN", defaultValue = "10") int nIn,
                          @RequestParam(value = "nOut", defaultValue = "10") int nOut,
@@ -105,7 +106,7 @@ public class Controller {
         return best;
     }
 
-    @RequestMapping("/requesttraining")
+    @RequestMapping(value = "/requesttraining", method = RequestMethod.POST)
     public void trainnet(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia")String courseName,
                          @RequestParam(value = "nIN", defaultValue = "10") int nIn,
                          @RequestParam(value = "nOut", defaultValue = "10") int nOut) throws IOException, InterruptedException {
