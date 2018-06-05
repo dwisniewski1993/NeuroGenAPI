@@ -130,6 +130,11 @@ public class NeuralNetwork {
         }
     }
 
+    public void requestTraining() throws IOException {
+        trainModel();
+        saveModel();
+    }
+
     private void saveModel() throws IOException {
         ModelSerializer.writeModel(this.model, this.locationToSaveModel, this.saveUpdater);
     }

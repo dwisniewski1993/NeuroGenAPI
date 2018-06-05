@@ -68,7 +68,7 @@ public class Controller {
         return best;
     }
 
-    @RequestMapping
+    @RequestMapping("/neurogen")
     public List neurogen(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia")String courseName,
                          @RequestParam(value = "nIN", defaultValue = "10") int nIn,
                          @RequestParam(value = "nOut", defaultValue = "10") int nOut,
@@ -103,5 +103,19 @@ public class Controller {
         best = geneticalg.getBestList();
 
         return best;
+    }
+
+    @RequestMapping("/requesttraining")
+    public void trainnet(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia")String courseName,
+                         @RequestParam(value = "nIN", defaultValue = "10") int nIn,
+                         @RequestParam(value = "nOut", defaultValue = "10") int nOut) throws IOException, InterruptedException {
+
+        int nEpochs = 100;
+        int nHiddenNodes = 100;
+        String dataset = courseName+" dataset.csv";
+
+        System.out.println("NeuroGen: TRAIN NETWORK");
+        NeuralNetwork nn = new NeuralNetwork(courseName, nEpochs, nIn, nOut, nHiddenNodes, dataset);
+        nn.requestTraining();
     }
 }
