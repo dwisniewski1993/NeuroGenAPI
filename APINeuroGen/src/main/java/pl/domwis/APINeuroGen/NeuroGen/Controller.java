@@ -173,7 +173,7 @@ public class Controller {
         boolean semanticExist = Files.exists(Paths.get(courseName + " semantic.xml"));
         Map<String, Object> mapedList = new HashMap<>();
 
-        List<String> methods = new ArrayList<>();///neuralnetwork
+        List<String> methods = new ArrayList<>();
 
         if (datasetExist){
             methods.add("neuralnetwork");

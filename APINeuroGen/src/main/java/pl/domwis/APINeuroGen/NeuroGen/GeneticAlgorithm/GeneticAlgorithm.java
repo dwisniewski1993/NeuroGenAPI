@@ -71,10 +71,7 @@ public class GeneticAlgorithm {
 
     //Fitness Function
     private static int FF(final Genotype<EnumGene<Integer>> gt){
-        //Fitness=suma(waga * odległość od(i do i-1) + (1-waga) * poziom trudności
 
-        int fitness = 0;
-        double wage = 0.8;
         String [] chromosome = new String [gt.getChromosome().length()];
 
         for (int i = 0; i < gt.getChromosome().length(); i++){
@@ -85,6 +82,7 @@ public class GeneticAlgorithm {
     }
 
     private static int getFitness(String [] chromosome){
+        //Fitness=suma(waga * odległość od(i do i-1) + (1-waga) * poziom trudności
         double fitness = 0;
         double wage = 0.8;
 
