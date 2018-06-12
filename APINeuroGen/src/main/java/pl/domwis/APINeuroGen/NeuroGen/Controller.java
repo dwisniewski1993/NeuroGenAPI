@@ -1,5 +1,7 @@
 package pl.domwis.APINeuroGen.NeuroGen;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +28,22 @@ public class Controller {
     @RequestMapping(value = "/importdatasets", method = RequestMethod.POST)
     public String importDatasets(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                                  @RequestParam(value = "datasetFile") MultipartFile datasetFile,
-                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile) throws IOException {
+                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile,
+                                 @RequestParam(value = "jsonRaport") String jsonRaport) throws IOException {
+        /*File newjson = new File(courseName + " x.json");
+        newjson.createNewFile();
+        writeMultiPartFIleToFile(jsonRaport, newjson);*/
+
+        JSONObject jsonObject = new JSONObject(jsonRaport);
+        int errorCode = jsonObject.getInt("errorCode");
+        JSONObject resultval = jsonObject.getJSONObject("resultValue");
+        JSONArray students = resultval.getJSONArray("students");
+
+        for (Object studentobj : students) {
+            JSONObject student = (JSONObject) studentobj;
+            System.out.println(student.getInt("studentId"));
+        }
+
         File newDataset = new File(courseName + " dataset.csv");
         newDataset.createNewFile();
         writeMultiPartFIleToFile(datasetFile, newDataset);
@@ -36,12 +53,12 @@ public class Controller {
             newSemantic.createNewFile();
             writeMultiPartFIleToFile(semanticFile, newSemantic);
         }
-        return "DONE " + newDataset.getAbsolutePath();
+        return "DONE " + newDataset.getAbsolutePath() + errorCode;
     }
 
-    private void writeMultiPartFIleToFile(@RequestParam(value = "datasetFile") MultipartFile datasetFile, File newDataset) throws IOException {
-        FileOutputStream fos = new FileOutputStream(newDataset);
-        fos.write(datasetFile.getBytes());
+    private void writeMultiPartFIleToFile(@RequestParam(value = "datasetFile") MultipartFile file, File newFile) throws IOException {
+        FileOutputStream fos = new FileOutputStream(newFile);
+        fos.write(file.getBytes());
         fos.close();
     }
 
@@ -58,7 +75,7 @@ public class Controller {
         int nHiddenNodes = 100;
         String dataset = courseName + " dataset.csv";
 
-        if (!datasetExist){
+        if (!datasetExist) {
             throw new DataNotFoundException("Brak pliku: " + dataset);
         }
 
@@ -91,7 +108,7 @@ public class Controller {
         int numberOfGenerations = 100;
         List best;
 
-        if (!semanticExist){
+        if (!semanticExist) {
             throw new DataNotFoundException("Brak pliku: " + courseName + " semantic.xml");
         }
 
@@ -124,11 +141,11 @@ public class Controller {
         int numberOfGenerations = 100;
         List best;
 
-        if (!datasetExist){
+        if (!datasetExist) {
             throw new DataNotFoundException("Brak pliku: " + dataset);
         }
 
-        if (!semanticExist){
+        if (!semanticExist) {
             throw new DataNotFoundException("Brak pliku: " + courseName + " semantic.xml");
         }
 
@@ -167,7 +184,7 @@ public class Controller {
     }
 
     @RequestMapping(value = "/availablemethods", method = RequestMethod.GET)
-    public Map<String, Object> getavailablemethods(@RequestParam(value = "courseName") String courseName){
+    public Map<String, Object> getavailablemethods(@RequestParam(value = "courseName") String courseName) {
 
         boolean datasetExist = Files.exists(Paths.get(courseName + " dataset.csv"));
         boolean semanticExist = Files.exists(Paths.get(courseName + " semantic.xml"));
@@ -175,13 +192,13 @@ public class Controller {
 
         List<String> methods = new ArrayList<>();
 
-        if (datasetExist){
+        if (datasetExist) {
             methods.add("neuralnetwork");
         }
-        if (semanticExist){
+        if (semanticExist) {
             methods.add("geneticalgorithm");
         }
-        if (datasetExist && semanticExist){
+        if (datasetExist && semanticExist) {
             methods.add("neurogen");
         }
 
