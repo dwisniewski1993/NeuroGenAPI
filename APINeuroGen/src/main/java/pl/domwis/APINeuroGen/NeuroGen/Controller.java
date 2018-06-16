@@ -15,9 +15,7 @@ import pl.domwis.APINeuroGen.NeuroGen.NeuralNetwork.NeuralNetwork;
 import pl.domwis.APINeuroGen.NeuroGen.exceptions.DataNotFoundException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -29,20 +27,11 @@ public class Controller {
     public String importDatasets(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
                                  @RequestParam(value = "datasetFile") MultipartFile datasetFile,
                                  @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile,
-                                 @RequestParam(value = "jsonRaport") String jsonRaport) throws IOException {
-        /*File newjson = new File(courseName + " x.json");
-        newjson.createNewFile();
-        writeMultiPartFIleToFile(jsonRaport, newjson);*/
+                                 @RequestParam(value = "jsonRaport") String jsonRaport,
+                                 @RequestParam(value = "numOfInteraction") int numInter) throws IOException {
 
-        JSONObject jsonObject = new JSONObject(jsonRaport);
-        int errorCode = jsonObject.getInt("errorCode");
-        JSONObject resultval = jsonObject.getJSONObject("resultValue");
-        JSONArray students = resultval.getJSONArray("students");
-
-        for (Object studentobj : students) {
-            JSONObject student = (JSONObject) studentobj;
-            System.out.println(student.getInt("studentId"));
-        }
+        parseRaportITS22(courseName, jsonRaport, numInter);
+        deleteEmptyLine(courseName);
 
         File newDataset = new File(courseName + " dataset.csv");
         newDataset.createNewFile();
@@ -53,7 +42,7 @@ public class Controller {
             newSemantic.createNewFile();
             writeMultiPartFIleToFile(semanticFile, newSemantic);
         }
-        return "DONE " + newDataset.getAbsolutePath() + errorCode;
+        return "DONE " + newDataset.getAbsolutePath();
     }
 
     private void writeMultiPartFIleToFile(@RequestParam(value = "datasetFile") MultipartFile file, File newFile) throws IOException {
@@ -61,6 +50,8 @@ public class Controller {
         fos.write(file.getBytes());
         fos.close();
     }
+
+
 
     @RequestMapping(value = "/neuralnetwork", method = RequestMethod.POST)
     public List neuralNetwork(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
@@ -205,5 +196,89 @@ public class Controller {
         mapedList.put("methods", methods);
 
         return mapedList;
+    }
+
+    private void deleteEmptyLine(@RequestParam(value = "couseName") String courseName) throws IOException {
+        File file = new File(courseName+" features.csv");
+        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+        byte b;
+        long length = randomAccessFile.length() ;
+        if (length != 0) {
+            do {
+                length -= 1;
+                randomAccessFile.seek(length);
+                b = randomAccessFile.readByte();
+            } while (b != 10 && length > 0);
+            randomAccessFile.setLength(length);
+            randomAccessFile.close();
+        }
+    }
+
+    private void parseRaportITS22(@RequestParam(value = "courseName") String courseName,
+                                  @RequestParam(value = "jsonRaport") String jsonRaport,
+                                  @RequestParam(value = "numOfInteraction") int numIter) throws IOException{
+        JSONObject jsonObject = new JSONObject(jsonRaport);
+
+        JSONObject resultval = jsonObject.getJSONObject("resultValue");
+        JSONArray students = resultval.getJSONArray("students");
+
+        String featuresFile = courseName + " features.csv";
+        FileWriter writer = new FileWriter(featuresFile);
+
+        for (Object studentobj : students) {
+            JSONObject student = (JSONObject) studentobj;
+            ArrayList<Integer> interactionList = new ArrayList<>();
+            JSONArray scos = ((JSONObject) studentobj).getJSONArray("scos");
+            for (Object scoobj : scos){
+                JSONObject sco = (JSONObject) scoobj;
+                JSONArray interactions = sco.getJSONArray("interactions");
+                for (Object interobj : interactions){
+                    JSONObject interaction = (JSONObject) interobj;
+                    if (interaction.getString("cmi.interactions.n.objectives").equalsIgnoreCase("")){
+                        interactionList.add(0);
+                    }
+                    try{
+                        String result = interaction.getString("cmi.interactions.n.result");
+
+                        if (result.equalsIgnoreCase("real"))
+                        {
+                            String correct_response = interaction.getString("cmi.interactions.n.correct_responses");
+                            String learner_response = interaction.getString("cmi.interactions.n.learner_response");
+                            if (correct_response==learner_response)
+                            {
+                                interactionList.add(1);
+                            }
+                            else {
+                                interactionList.add(0);
+                            }
+                        }
+                        else {
+                            System.out.println(result);
+                            if (result.equalsIgnoreCase("incorrect")){
+                                interactionList.add(0);
+                            }
+                            if (result.equalsIgnoreCase("correct")){
+                                interactionList.add(1);
+                            }
+                        }
+
+                    }
+                    catch (Exception e){}
+                }
+            }
+            if (interactionList.size()==numIter){
+                for (int i = 0; i<interactionList.size();i++){
+                    Object[] answer = interactionList.toArray();
+                    writer.append(answer[i].toString());
+                    if (i!=10){
+                        writer.append(",");
+                    }
+                }
+                writer.append("\n");
+            }
+        }
+
+        writer.flush();
+        writer.close();
     }
 }
