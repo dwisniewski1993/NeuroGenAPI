@@ -25,24 +25,20 @@ public class Controller {
 
     @RequestMapping(value = "/importdatasets", method = RequestMethod.POST)
     public String importDatasets(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                                 @RequestParam(value = "datasetFile") MultipartFile datasetFile,
-                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile,
                                  @RequestParam(value = "jsonRaport") String jsonRaport,
+                                 @RequestParam(value = "jsonRaport2") String jsonRaport2,
+                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile,
                                  @RequestParam(value = "numOfInteraction") int numInter) throws IOException {
 
         parseRaportITS22(courseName, jsonRaport, numInter);
         deleteEmptyLine(courseName);
-
-        File newDataset = new File(courseName + " dataset.csv");
-        newDataset.createNewFile();
-        writeMultiPartFIleToFile(datasetFile, newDataset);
 
         if (semanticFile != null) {
             File newSemantic = new File(courseName + " semantic.xml");
             newSemantic.createNewFile();
             writeMultiPartFIleToFile(semanticFile, newSemantic);
         }
-        return "DONE " + newDataset.getAbsolutePath();
+        return "DONE ";
     }
 
     private void writeMultiPartFIleToFile(@RequestParam(value = "datasetFile") MultipartFile file, File newFile) throws IOException {
@@ -55,20 +51,32 @@ public class Controller {
 
     @RequestMapping(value = "/neuralnetwork", method = RequestMethod.POST)
     public List neuralNetwork(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                              @RequestParam(value = "nIN", defaultValue = "10") int nIn,
-                              @RequestParam(value = "nOut", defaultValue = "10") int nOut,
                               @RequestParam(value = "sample") String sample) throws IOException,
             InterruptedException {
 
-        boolean datasetExist = Files.exists(Paths.get(courseName + " dataset.csv"));
+        boolean datasetExist = Files.exists(Paths.get(courseName + " features.csv"));
+        boolean datasetExist2 = Files.exists(Paths.get(courseName + " labels.csv"));
 
         int nEpochs = 100;
         int nHiddenNodes = 100;
-        String dataset = courseName + " dataset.csv";
+        String features_dataset = courseName + " features.csv";
+        String labels_dataset = courseName + " labels.csv";
 
         if (!datasetExist) {
-            throw new DataNotFoundException("Brak pliku: " + dataset);
+            throw new DataNotFoundException("Brak pliku: " + features_dataset);
         }
+
+        if (!datasetExist2) {
+            throw new DataNotFoundException("Brak pliku: " + labels_dataset);
+        }
+
+        File ffile = new File(features_dataset);
+        Scanner scan1 = new Scanner(ffile);
+        int numIn = scan1.nextLine().split(",").length;
+
+        File lfile = new File(labels_dataset);
+        Scanner scan2 = new Scanner(lfile);
+        int numOut = scan2.nextLine().split(",").length;
 
         String[] strValues = sample.split(",");
         float[] values = new float[strValues.length];
@@ -79,7 +87,7 @@ public class Controller {
         INDArray pred = Nd4j.create(values);
 
         System.out.println("NeuroGen: NN");
-        NeuralNetwork nn = new NeuralNetwork(courseName, nEpochs, nIn, nOut, nHiddenNodes, dataset);
+        NeuralNetwork nn = new NeuralNetwork(courseName, nEpochs, numIn, numOut, nHiddenNodes, features_dataset, labels_dataset);
         List prediction = nn.getPredictionList(pred);
 
         return prediction;
@@ -113,17 +121,17 @@ public class Controller {
 
     @RequestMapping(value = "/neurogen", method = RequestMethod.POST)
     public List neurogen(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                         @RequestParam(value = "nIN", defaultValue = "10") int nIn,
-                         @RequestParam(value = "nOut", defaultValue = "10") int nOut,
                          @RequestParam(value = "sample") String sample) throws IOException, InterruptedException,
             ParserConfigurationException, SAXException {
 
-        boolean datasetExist = Files.exists(Paths.get(courseName + " dataset.csv"));
+        boolean datasetExist = Files.exists(Paths.get(courseName + " features.csv"));
+        boolean datasetExist2 = Files.exists(Paths.get(courseName + " labels.csv"));
         boolean semanticExist = Files.exists(Paths.get(courseName + " semantic.xml"));
 
         int nEpochs = 100;
         int nHiddenNodes = 100;
-        String dataset = courseName + " dataset.csv";
+        String features_dataset = courseName + " features.csv";
+        String labels_dataset = courseName + " labels.csv";
 
         int populationSize = 50;
         int maxPhenotypeAge = 20;
@@ -133,12 +141,24 @@ public class Controller {
         List best;
 
         if (!datasetExist) {
-            throw new DataNotFoundException("Brak pliku: " + dataset);
+            throw new DataNotFoundException("Brak pliku: " + features_dataset);
+        }
+
+        if (!datasetExist2) {
+            throw new DataNotFoundException("Brak pliku: " + labels_dataset);
         }
 
         if (!semanticExist) {
             throw new DataNotFoundException("Brak pliku: " + courseName + " semantic.xml");
         }
+
+        File ffile = new File(features_dataset);
+        Scanner scan1 = new Scanner(ffile);
+        int numIn = scan1.nextLine().split(",").length;
+
+        File lfile = new File(labels_dataset);
+        Scanner scan2 = new Scanner(lfile);
+        int numOut = scan2.nextLine().split(",").length;
 
         String[] strValues = sample.split(",");
         float[] values = new float[strValues.length];
@@ -149,7 +169,7 @@ public class Controller {
         INDArray pred = Nd4j.create(values);
 
         System.out.println("NeuroGen: FULL");
-        NeuralNetwork neuralnet = new NeuralNetwork(courseName, nEpochs, nIn, nOut, nHiddenNodes, dataset);
+        NeuralNetwork neuralnet = new NeuralNetwork(courseName, nEpochs, numIn, numOut, nHiddenNodes, features_dataset, labels_dataset);
         Set<Integer> predicion = neuralnet.getPredictionSet(pred);
 
         GeneticAlgorithm geneticalg = new GeneticAlgorithm(courseName, populationSize, maxPhenotypeAge,
@@ -161,35 +181,46 @@ public class Controller {
     }
 
     @RequestMapping(value = "/requesttraining", method = RequestMethod.POST)
-    public void trainnet(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                         @RequestParam(value = "nIN", defaultValue = "10") int nIn,
-                         @RequestParam(value = "nOut", defaultValue = "10") int nOut) throws IOException, InterruptedException {
+    public void trainnet(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName) throws IOException, InterruptedException {
 
         int nEpochs = 100;
         int nHiddenNodes = 100;
-        String dataset = courseName + " dataset.csv";
+        String features_dataset = courseName + " features.csv";
+        String labels_dataset = courseName + " labels.csv";
+
+        boolean datasetExist = Files.exists(Paths.get(courseName + " features.csv"));
+        boolean datasetExist2 = Files.exists(Paths.get(courseName + " labels.csv"));
+
+        File ffile = new File(features_dataset);
+        Scanner scan1 = new Scanner(ffile);
+        int numIn = scan1.nextLine().split(",").length;
+
+        File lfile = new File(labels_dataset);
+        Scanner scan2 = new Scanner(lfile);
+        int numOut = scan2.nextLine().split(",").length;
 
         System.out.println("NeuroGen: TRAIN NETWORK");
-        NeuralNetwork nn = new NeuralNetwork(courseName, nEpochs, nIn, nOut, nHiddenNodes, dataset);
+        NeuralNetwork nn = new NeuralNetwork(courseName, nEpochs, numIn, numOut, nHiddenNodes, features_dataset, labels_dataset);
         nn.requestTraining();
     }
 
     @RequestMapping(value = "/availablemethods", method = RequestMethod.GET)
     public Map<String, Object> getavailablemethods(@RequestParam(value = "courseName") String courseName) {
 
-        boolean datasetExist = Files.exists(Paths.get(courseName + " dataset.csv"));
+        boolean datasetExist = Files.exists(Paths.get(courseName + " features.csv"));
+        boolean datasetExist2 = Files.exists(Paths.get(courseName + " labels.csv"));
         boolean semanticExist = Files.exists(Paths.get(courseName + " semantic.xml"));
         Map<String, Object> mapedList = new HashMap<>();
 
         List<String> methods = new ArrayList<>();
 
-        if (datasetExist) {
+        if (datasetExist && datasetExist2) {
             methods.add("neuralnetwork");
         }
         if (semanticExist) {
             methods.add("geneticalgorithm");
         }
-        if (datasetExist && semanticExist) {
+        if (datasetExist && datasetExist2 && semanticExist) {
             methods.add("neurogen");
         }
 
@@ -270,7 +301,7 @@ public class Controller {
                 for (int i = 0; i<interactionList.size();i++){
                     Object[] answer = interactionList.toArray();
                     writer.append(answer[i].toString());
-                    if (i!=10){
+                    if (i!=numIter-1){
                         writer.append(",");
                     }
                 }
