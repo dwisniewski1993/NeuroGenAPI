@@ -24,13 +24,16 @@ import java.util.*;
 public class Controller {
 
     @RequestMapping(value = "/importdatasets", method = RequestMethod.POST)
-    public String importDatasets(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                                 @RequestParam(value = "jsonRaport") String jsonRaport,
+    public String importDatasets(@RequestParam(value = "jsonRaport") String jsonRaport,
                                  @RequestParam(value = "jsonRaport2") String jsonRaport2,
-                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile,
-                                 @RequestParam(value = "numOfInteraction") int numInter) throws IOException {
+                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile) throws IOException {
 
-        parseRaportITS22(courseName, jsonRaport, numInter);
+        String courseName;
+        JSONObject jsonObject = new JSONObject(jsonRaport);
+        JSONObject resultval = jsonObject.getJSONObject("resultValue");
+        courseName = resultval.getString("course");
+
+        parseRaportITS22(courseName, jsonRaport);
         deleteEmptyLine(courseName);
 
         if (semanticFile != null) {
@@ -48,10 +51,10 @@ public class Controller {
     }
 
 
-
     @RequestMapping(value = "/neuralnetwork", method = RequestMethod.POST)
     public List neuralNetwork(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                              @RequestParam(value = "sample") String sample) throws IOException,
+                              @RequestParam(value = "studentid") int studentid,
+                              @RequestParam(value = "jsonRaport") String jsonRaport) throws IOException,
             InterruptedException {
 
         boolean datasetExist = Files.exists(Paths.get(courseName + " features.csv"));
@@ -77,6 +80,8 @@ public class Controller {
         File lfile = new File(labels_dataset);
         Scanner scan2 = new Scanner(lfile);
         int numOut = scan2.nextLine().split(",").length;
+
+        String sample = takeSample(studentid, jsonRaport);
 
         String[] strValues = sample.split(",");
         float[] values = new float[strValues.length];
@@ -121,7 +126,8 @@ public class Controller {
 
     @RequestMapping(value = "/neurogen", method = RequestMethod.POST)
     public List neurogen(@RequestParam(value = "courseName", defaultValue = "tabliczka mnozenia") String courseName,
-                         @RequestParam(value = "sample") String sample) throws IOException, InterruptedException,
+                         @RequestParam(value = "studentid") int studentid,
+                         @RequestParam(value = "jsonRaport") String jsonRaport) throws IOException, InterruptedException,
             ParserConfigurationException, SAXException {
 
         boolean datasetExist = Files.exists(Paths.get(courseName + " features.csv"));
@@ -159,6 +165,8 @@ public class Controller {
         File lfile = new File(labels_dataset);
         Scanner scan2 = new Scanner(lfile);
         int numOut = scan2.nextLine().split(",").length;
+
+        String sample = takeSample(studentid, jsonRaport);
 
         String[] strValues = sample.split(",");
         float[] values = new float[strValues.length];
@@ -230,10 +238,10 @@ public class Controller {
     }
 
     private void deleteEmptyLine(@RequestParam(value = "couseName") String courseName) throws IOException {
-        File file = new File(courseName+" features.csv");
+        File file = new File(courseName + " features.csv");
         RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
         byte b;
-        long length = randomAccessFile.length() ;
+        long length = randomAccessFile.length();
         if (length != 0) {
             do {
                 length -= 1;
@@ -246,8 +254,8 @@ public class Controller {
     }
 
     private void parseRaportITS22(@RequestParam(value = "courseName") String courseName,
-                                  @RequestParam(value = "jsonRaport") String jsonRaport,
-                                  @RequestParam(value = "numOfInteraction") int numIter) throws IOException{
+                                  @RequestParam(value = "jsonRaport") String jsonRaport
+                                  ) throws IOException {
         JSONObject jsonObject = new JSONObject(jsonRaport);
 
         JSONObject resultval = jsonObject.getJSONObject("resultValue");
@@ -260,56 +268,111 @@ public class Controller {
             JSONObject student = (JSONObject) studentobj;
             ArrayList<Integer> interactionList = new ArrayList<>();
             JSONArray scos = ((JSONObject) studentobj).getJSONArray("scos");
-            for (Object scoobj : scos){
+            for (Object scoobj : scos) {
                 JSONObject sco = (JSONObject) scoobj;
                 JSONArray interactions = sco.getJSONArray("interactions");
-                for (Object interobj : interactions){
+                for (Object interobj : interactions) {
                     JSONObject interaction = (JSONObject) interobj;
-                    if (interaction.getString("cmi.interactions.n.objectives").equalsIgnoreCase("")){
+                    if (interaction.getString("cmi.interactions.n.objectives").equalsIgnoreCase("")) {
                         interactionList.add(0);
                     }
-                    try{
+                    try {
                         String result = interaction.getString("cmi.interactions.n.result");
 
-                        if (result.equalsIgnoreCase("real"))
-                        {
+                        if (result.equalsIgnoreCase("real")) {
                             String correct_response = interaction.getString("cmi.interactions.n.correct_responses");
                             String learner_response = interaction.getString("cmi.interactions.n.learner_response");
-                            if (correct_response==learner_response)
-                            {
+                            if (correct_response == learner_response) {
                                 interactionList.add(1);
-                            }
-                            else {
+                            } else {
                                 interactionList.add(0);
                             }
-                        }
-                        else {
+                        } else {
                             System.out.println(result);
-                            if (result.equalsIgnoreCase("incorrect")){
+                            if (result.equalsIgnoreCase("incorrect")) {
                                 interactionList.add(0);
                             }
-                            if (result.equalsIgnoreCase("correct")){
+                            if (result.equalsIgnoreCase("correct")) {
                                 interactionList.add(1);
                             }
                         }
 
+                    } catch (Exception e) {
                     }
-                    catch (Exception e){}
                 }
             }
-            if (interactionList.size()==numIter){
-                for (int i = 0; i<interactionList.size();i++){
-                    Object[] answer = interactionList.toArray();
-                    writer.append(answer[i].toString());
-                    if (i!=numIter-1){
-                        writer.append(",");
-                    }
+            for (int i = 0; i < interactionList.size(); i++) {
+                Object[] answer = interactionList.toArray();
+                writer.append(answer[i].toString());
+                if (i != interactionList.size() - 1) {
+                    writer.append(",");
                 }
-                writer.append("\n");
+                else {writer.append("\n");}
             }
         }
 
         writer.flush();
         writer.close();
+    }
+
+    private String takeSample(int studentid, String jsonRaport){
+        String samp = "";
+
+        ArrayList<Integer> interactionList = new ArrayList<>();
+
+        JSONObject jsonObject = new JSONObject(jsonRaport);
+
+        JSONObject resultval = jsonObject.getJSONObject("resultValue");
+        JSONArray students = resultval.getJSONArray("students");
+
+        for (Object studentobj : students){
+            JSONObject student = (JSONObject) studentobj;
+            int stunid = student.getInt("studentId");
+            if (stunid==studentid){
+                JSONArray scos = ((JSONObject) studentobj).getJSONArray("scos");
+                for (Object scoobj : scos) {
+                    JSONObject sco = (JSONObject) scoobj;
+                    JSONArray interactions = sco.getJSONArray("interactions");
+                    for (Object interobj : interactions) {
+                        JSONObject interaction = (JSONObject) interobj;
+                        if (interaction.getString("cmi.interactions.n.objectives").equalsIgnoreCase("")) {
+                            interactionList.add(0);
+                        }
+                        try {
+                            String result = interaction.getString("cmi.interactions.n.result");
+
+                            if (result.equalsIgnoreCase("real")) {
+                                String correct_response = interaction.getString("cmi.interactions.n.correct_responses");
+                                String learner_response = interaction.getString("cmi.interactions.n.learner_response");
+                                if (correct_response == learner_response) {
+                                    interactionList.add(1);
+                                } else {
+                                    interactionList.add(0);
+                                }
+                            } else {
+                                System.out.println(result);
+                                if (result.equalsIgnoreCase("incorrect")) {
+                                    interactionList.add(0);
+                                }
+                                if (result.equalsIgnoreCase("correct")) {
+                                    interactionList.add(1);
+                                }
+                            }
+
+                        } catch (Exception e) {
+                        }
+
+                    }
+                }
+            }
+        }
+        for (int i=0; i<interactionList.size();i++){
+            if (i==0){
+                samp = samp + Integer.toString(interactionList.get(i));
+            }
+            else {samp = samp + ","+Integer.toString(interactionList.get(i));}
+        }
+
+        return samp;
     }
 }
