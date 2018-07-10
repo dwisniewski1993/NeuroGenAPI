@@ -4,10 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
 import pl.domwis.APINeuroGen.NeuroGen.GeneticAlgorithm.GeneticAlgorithm;
@@ -48,6 +45,11 @@ public class Controller {
         FileOutputStream fos = new FileOutputStream(newFile);
         fos.write(file.getBytes());
         fos.close();
+    }
+
+    private void getRaportFactors(@RequestBody Raports raportITS){
+        raportITS.getAllStudentsRaport();
+        raportITS.getStudentRaport();
     }
 
 
