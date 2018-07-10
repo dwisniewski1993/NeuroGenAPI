@@ -21,24 +21,26 @@ import java.util.*;
 public class Controller {
 
     @RequestMapping(value = "/importdatasets", method = RequestMethod.POST)
-    public String importDatasets(@RequestParam(value = "jsonRaport") String jsonRaport,
-                                 @RequestParam(value = "jsonRaport2") String jsonRaport2,
+    public String importDatasets(@RequestBody Raports raports,
                                  @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile) throws IOException {
 
         String courseName;
-        JSONObject jsonObject = new JSONObject(jsonRaport);
+        String allStudentsRaportStr = raports.getAllStudentsRaport();
+        String teacherRecommendationStr = raports.getTeacherRecommendation();
+
+        JSONObject jsonObject = new JSONObject(allStudentsRaportStr);
         JSONObject resultval = jsonObject.getJSONObject("resultValue");
         courseName = resultval.getString("course");
 
-        parseRaportITS22(courseName, jsonRaport);
+        parseRaportITS22(courseName, allStudentsRaportStr);
         deleteEmptyLine(courseName);
-
+        //rekomendacje
         if (semanticFile != null) {
             File newSemantic = new File(courseName + " semantic.xml");
             newSemantic.createNewFile();
             writeMultiPartFIleToFile(semanticFile, newSemantic);
         }
-        return "DONE ";
+        return "{\"status\":\"ok\"}";
     }
 
     private void writeMultiPartFIleToFile(@RequestParam(value = "datasetFile") MultipartFile file, File newFile) throws IOException {
@@ -47,10 +49,6 @@ public class Controller {
         fos.close();
     }
 
-    private void getRaportFactors(@RequestBody Raports raportITS){
-        raportITS.getAllStudentsRaport();
-        raportITS.getStudentRaport();
-    }
 
 
     @RequestMapping(value = "/neuralnetwork", method = RequestMethod.POST)
@@ -275,16 +273,13 @@ public class Controller {
                 JSONArray interactions = sco.getJSONArray("interactions");
                 for (Object interobj : interactions) {
                     JSONObject interaction = (JSONObject) interobj;
-                    if (interaction.getString("cmi.interactions.n.objectives").equalsIgnoreCase("")) {
-                        interactionList.add(0);
-                    }
                     try {
                         String result = interaction.getString("cmi.interactions.n.result");
 
                         if (result.equalsIgnoreCase("real")) {
                             String correct_response = interaction.getString("cmi.interactions.n.correct_responses");
                             String learner_response = interaction.getString("cmi.interactions.n.learner_response");
-                            if (correct_response == learner_response) {
+                            if (correct_response.equals(learner_response)) {//Do sprawdzenia
                                 interactionList.add(1);
                             } else {
                                 interactionList.add(0);
