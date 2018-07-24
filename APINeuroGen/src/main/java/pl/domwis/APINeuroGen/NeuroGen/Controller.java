@@ -21,25 +21,35 @@ import java.util.*;
 public class Controller {
 
     @RequestMapping(value = "/importdatasets", method = RequestMethod.POST)
-    public String importDatasets(@RequestBody Raports raports,
+    public String importDatasets(@RequestParam(value = "jsonRaport") String jsonRaport,
                                  @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile) throws IOException {
 
         String courseName;
-        String allStudentsRaportStr = raports.getAllStudentsRaport();
-        String teacherRecommendationStr = raports.getTeacherRecommendation();
 
-        JSONObject jsonObject = new JSONObject(allStudentsRaportStr);
-        JSONObject resultval = jsonObject.getJSONObject("resultValue");
-        courseName = resultval.getString("course");
+        JSONObject raports = new JSONObject(jsonRaport);
 
-        parseRaportITS22(courseName, allStudentsRaportStr);
-        deleteEmptyLine(courseName);
+        JSONObject studentRaport = raports.getJSONObject("studentRaport"); // raport studenta
+        JSONObject teacherRecommendation = raports.getJSONObject("teacherRecommendation"); // raport rekomendacji nauczyciela
+        JSONObject allStudentsRaport = raports.getJSONObject("allStudentsRaport"); // raport studentów
+
+        //JSONObject allStudentsRaportStr = raports.getAllStudentsRaport();
+        //JSONObject teacherRecommendationStr = raports.getTeacherRecommendation();
+
+        //JSONObject jsonObject = new JSONObject(allStudentsRaportStr);
+        //System.out.println(allStudentsRaportStr);
+        //JSONObject resultval = allStudentsRaportStr.getJSONObject("resultValue");
+        //courseName = resultval.getString("course");
+
+        //System.out.println(courseName);
+
+        //parseRaportITS22(courseName, allStudentsRaportStr);
+        //deleteEmptyLine(courseName);
         //rekomendacje
-        if (semanticFile != null) {
-            File newSemantic = new File(courseName + " semantic.xml");
-            newSemantic.createNewFile();
-            writeMultiPartFIleToFile(semanticFile, newSemantic);
-        }
+        //if (semanticFile != null) {
+        //    File newSemantic = new File(courseName + " semantic.xml");
+        //    newSemantic.createNewFile();
+        //    writeMultiPartFIleToFile(semanticFile, newSemantic);
+        //}
         return "{\"status\":\"ok\"}";
     }
 
@@ -254,7 +264,7 @@ public class Controller {
     }
 
     private void parseRaportITS22(@RequestParam(value = "courseName") String courseName,
-                                  @RequestParam(value = "jsonRaport") String jsonRaport
+                                  @RequestParam(value = "jsonRaport") JSONObject jsonRaport
                                   ) throws IOException {
         JSONObject jsonObject = new JSONObject(jsonRaport);
 
