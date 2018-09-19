@@ -3,34 +3,31 @@ package pl.domwis.APINeuroGen.NeuroGen;
 import org.json.JSONObject;
 
 public class Raports {
-    JSONObject allStudentsRaport;
-    JSONObject teacherRecommendation;
-    JSONObject studentRaport;
+    public String allStudentsRaport;
+    public String teacherRecommendation;
+    public String studentRaport;
 
-    Raports() {
-    }
-
-    public JSONObject getTeacherRecommendation() {
+    public String getTeacherRecommendation() {
         return teacherRecommendation;
     }
 
-    public void setTeacherRecommendation(JSONObject teacherRecommendation) {
+    public void setTeacherRecommendation(String teacherRecommendation) {
         this.teacherRecommendation = teacherRecommendation;
     }
 
-    public JSONObject getAllStudentsRaport() {
-        return this.allStudentsRaport;
+    public String getAllStudentsRaport() {
+        return allStudentsRaport;
     }
 
-    public JSONObject getStudentRaport() {
-        return this.studentRaport;
+    public String getStudentRaport() {
+        return studentRaport;
     }
 
-    public void setAllStudentsRaport(JSONObject allStd) {
+    public void setAllStudentsRaport(String allStd) {
         this.allStudentsRaport = allStd;
     }
 
-    public void setStudentRaport(JSONObject Stud) {
+    public void setStudentRaport(String Stud) {
         this.studentRaport = Stud;
     }
 }

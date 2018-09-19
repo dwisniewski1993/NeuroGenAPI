@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
@@ -20,17 +22,22 @@ import java.util.*;
 @RestController
 public class Controller {
 
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @RequestMapping(value = "/importdatasets", method = RequestMethod.POST)
-    public String importDatasets(@RequestParam(value = "jsonRaport") String jsonRaport,
-                                 @RequestParam(value = "semanticFile", required = false) MultipartFile semanticFile) throws IOException {
+    public String importDatasets(@RequestBody Raports raports) {
 
         String courseName;
 
-        JSONObject raports = new JSONObject(jsonRaport);
+        String ITS_Raport = raports.getStudentRaport();
+        System.out.println(ITS_Raport);
+        //JSONObject studentRaport = ITS_Raport.getStudentRaport();
+        //System.out.println(studentRaport);
 
-        JSONObject studentRaport = raports.getJSONObject("studentRaport"); // raport studenta
-        JSONObject teacherRecommendation = raports.getJSONObject("teacherRecommendation"); // raport rekomendacji nauczyciela
-        JSONObject allStudentsRaport = raports.getJSONObject("allStudentsRaport"); // raport studentów
+        //JSONObject raports = new JSONObject(jsonRaport);
+
+        //JSONObject studentRaport = raports.getJSONObject("studentRaport"); // raport studenta
+        //JSONObject teacherRecommendation = raports.getJSONObject("teacherRecommendation"); // raport rekomendacji nauczyciela
+        //JSONObject allStudentsRaport = raports.getJSONObject("allStudentsRaport"); // raport studentów
 
         //JSONObject allStudentsRaportStr = raports.getAllStudentsRaport();
         //JSONObject teacherRecommendationStr = raports.getTeacherRecommendation();
